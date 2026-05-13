@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a0f08">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kebab Stocks">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Kebab Stocks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a0f08;
+    --bg-2: #241509;
+    --card: #2d1b0c;
+    --card-2: #3a2410;
+    --line: #4a2e15;
+    --ink: #fef3e2;
+    --ink-2: #c9a274;
+    --ink-3: #8a6b48;
+    --accent: #ff6b1a;
+    --accent-2: #ffb547;
+    --green: #7dd87d;
+    --red: #ff5a5a;
+    --yellow: #ffc94a;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 16px;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at top, rgba(255, 107, 26, 0.12), transparent 50%),
+      radial-gradient(ellipse at bottom, rgba(255, 181, 71, 0.05), transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .app { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; min-height: 100vh; }
+
+header {
+padding: 20px 18px 14px;
+display: flex; align-items: center; justify-content: space-between;
+border-bottom: 1px solid var(–line);
+position: sticky; top: 0; z-index: 50;
+backdrop-filter: blur(12px);
+background-color: rgba(26, 15, 8, 0.92);
+}
+.logo {
+font-weight: 800;
+font-size: 20px;
+letter-spacing: -0.02em;
+display: flex; align-items: center; gap: 8px;
+}
+.logo-dot {
+width: 8px; height: 8px;
+background: var(–accent);
+border-radius: 50%;
+box-shadow: 0 0 14px var(–accent);
+animation: pulse 2s ease-in-out infinite;
+}
+.logo-dot.offline { background: var(–red); box-shadow: 0 0 14px var(–red); }
+@keyframes pulse {
+0%, 100% { opacity: 1; transform: scale(1); }
+50% { opacity: 0.6; transform: scale(0.85); }
+}
+.role-chip {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+color: var(–ink-2);
+background: var(–card);
+padding: 5px 9px;
+border-radius: 20px;
+border: 1px solid var(–line);
+text-transform: uppercase;
+letter-spacing: 0.06em;
+cursor: pointer;
+}
+.role-chip.admin { color: var(–accent); border-color: var(–accent); }
+
+.content { padding: 18px; padding-bottom: 80px; }
+
+h1 {
+font-size: 30px;
+font-weight: 800;
+letter-spacing: -0.03em;
+margin: 4px 0 4px;
+line-height: 1;
+}
+h1 .accent { color: var(–accent); }
+.subtitle {
+color: var(–ink-3);
+font-size: 12px;
+margin-bottom: 18px;
+font-family: ‘DM Mono’, monospace;
+text-transform: uppercase;
+letter-spacing: 0.08em;
+}
+
+/* Summary chips */
+.summary {
+display: flex; gap: 8px;
+margin-bottom: 16px;
+overflow-x: auto;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;
+padding-bottom: 4px;
+}
+.summary::-webkit-scrollbar { display: none; }
+.chip {
+background: var(–card);
+border: 1px solid var(–line);
+border-radius: 20px;
+padding: 8px 14px;
+font-size: 12px;
+white-space: nowrap;
+display: flex; align-items: center; gap: 6px;
+font-family: ‘DM Mono’, monospace;
+}
+.chip .val { font-weight: 700; color: var(–ink); }
+.chip.alert .val { color: var(–red); }
+.chip.warn .val { color: var(–yellow); }
+.chip.ok .val { color: var(–green); }
+
+/* Search */
+.search-bar {
+background: var(–card);
+border: 1px solid var(–line);
+border-radius: var(–radius);
+padding: 10px 14px;
+display: flex; align-items: center; gap: 8px;
+margin-bottom: 14px;
+}
+.search-bar input {
+flex: 1;
+background: transparent;
+border: none;
+color: var(–ink);
+font-family: inherit;
+font-size: 15px;
+outline: none;
+}
+.search-bar input::placeholder { color: var(–ink-3); }
+.search-icon { color: var(–ink-3); font-size: 16px; }
+
+/* Category filter */
+.cat-tabs {
+display: flex; gap: 6px;
+overflow-x: auto;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;
+margin-bottom: 14px;
+padding-bottom: 2px;
+}
+.cat-tabs::-webkit-scrollbar { display: none; }
+.cat-tab {
+background: transparent;
+border: 1px solid var(–line);
+color: var(–ink-2);
+padding: 7px 14px;
+border-radius: 20px;
+font-family: inherit;
+font-size: 12px;
+white-space: nowrap;
+cursor: pointer;
+transition: all .15s;
+font-weight: 500;
+}
+.cat-tab.active {
+background: var(–accent);
+color: var(–bg);
+border-color: var(–accent);
+font-weight: 700;
+}
+
+/* Inventory items */
+.inv-item {
+display: flex; align-items: center; justify-content: space-between;
+padding: 14px;
+background: var(–card);
+border: 1px solid var(–line);
+border-radius: var(–radius);
+margin-bottom: 8px;
+position: relative;
+overflow: hidden;
+animation: fadeIn .2s;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(4px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.inv-item.low { border-color: var(–red); background: linear-gradient(90deg, rgba(255, 90, 90, 0.08), var(–card) 30%); }
+.inv-item.warn { border-color: var(–yellow); background: linear-gradient(90deg, rgba(255, 201, 74, 0.06), var(–card) 30%); }
+.inv-info { flex: 1; min-width: 0; padding-right: 8px; }
+.inv-name { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+.inv-meta {
+font-size: 10px;
+color: var(–ink-3);
+font-family: ‘DM Mono’, monospace;
+text-transform: uppercase;
+letter-spacing: 0.05em;
+}
+.inv-controls { display: flex; align-items: center; gap: 6px; }
+.qty-btn {
+width: 36px; height: 36px;
+border-radius: 50%;
+border: 1px solid var(–line);
+background: var(–card-2);
+color: var(–ink);
+font-size: 20px;
+font-weight: 600;
+cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+transition: all .15s;
+flex-shrink: 0;
+}
+.qty-btn:active { transform: scale(0.88); background: var(–accent); border-color: var(–accent); color: var(–bg); }
+.qty-btn:disabled {
+opacity: 0.3;
+cursor: not-allowed;
+}
+.qty-value {
+min-width: 56px;
+text-align: center;
+font-weight: 800;
+font-size: 16px;
+font-family: ‘DM Mono’, monospace;
+line-height: 1.1;
+}
+.qty-value.alert { color: var(–red); }
+.qty-value.warn { color: var(–yellow); }
+.qty-value .u { font-size: 9px; opacity: 0.6; display: block; margin-top: 2px; }
+
+/* Admin actions on items */
+.item-admin {
+position: absolute;
+top: 6px; right: 6px;
+background: var(–card-2);
+border: 1px solid var(–line);
+color: var(–ink-3);
+width: 24px; height: 24px;
+border-radius: 50%;
+cursor: pointer;
+font-size: 13px;
+display: flex; align-items: center; justify-content: center;
+}
+
+/* FAB - admin only */
+.fab {
+position: fixed;
+bottom: 24px; right: 24px;
+width: 56px; height: 56px;
+border-radius: 50%;
+background: var(–accent);
+color: var(–bg);
+border: none;
+font-size: 28px;
+cursor: pointer;
+box-shadow: 0 6px 20px rgba(255, 107, 26, 0.4);
+z-index: 60;
+display: none;
+align-items: center; justify-content: center;
+transition: transform .15s;
+}
+.fab:active { transform: scale(0.9); }
+
+/* Buttons */
+.btn {
+width: 100%;
+padding: 14px;
+border: none;
+border-radius: var(–radius);
+font-family: inherit;
+font-weight: 600;
+font-size: 15px;
+cursor: pointer;
+transition: transform .15s, opacity .2s;
+display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+background: var(–accent);
+color: var(–bg);
+box-shadow: 0 4px 16px rgba(255, 107, 26, 0.3);
+}
+.btn-secondary {
+background: var(–card-2);
+color: var(–ink);
+border: 1px solid var(–line);
+}
+.btn-danger {
+background: transparent;
+color: var(–red);
+border: 1px solid var(–red);
+}
+.btn-row { display: flex; gap: 8px; margin-top: 8px; }
+.btn-row .btn { flex: 1; }
+
+/* Modal */
+.modal-backdrop {
+position: fixed; inset: 0;
+background: rgba(0, 0, 0, 0.7);
+backdrop-filter: blur(4px);
+z-index: 200;
+display: none;
+align-items: flex-end;
+animation: fadeIn .2s;
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+background: var(–bg-2);
+border-top: 1px solid var(–line);
+border-radius: 20px 20px 0 0;
+padding: 20px;
+padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+width: 100%;
+max-width: 600px;
+margin: 0 auto;
+max-height: 90vh;
+overflow-y: auto;
+animation: slideUp .3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideUp {
+from { transform: translateY(100%); }
+to { transform: translateY(0); }
+}
+.modal-grip {
+width: 40px; height: 4px;
+background: var(–line);
+border-radius: 4px;
+margin: 0 auto 16px;
+}
+.modal h2 {
+margin: 0 0 14px;
+font-size: 22px;
+letter-spacing: -0.02em;
+}
+.field { margin-bottom: 12px; }
+.field label {
+display: block;
+font-size: 11px;
+color: var(–ink-3);
+text-transform: uppercase;
+letter-spacing: 0.08em;
+font-family: ‘DM Mono’, monospace;
+margin-bottom: 6px;
+}
+.field input, .field select {
+width: 100%;
+padding: 12px;
+background: var(–card);
+border: 1px solid var(–line);
+color: var(–ink);
+border-radius: 10px;
+font-family: inherit;
+font-size: 15px;
+outline: none;
+}
+.field input:focus, .field select:focus { border-color: var(–accent); }
+
+/* Empty state */
+.empty {
+text-align: center;
+padding: 60px 20px;
+color: var(–ink-3);
+}
+.empty .icon {
+font-size: 40px;
+margin-bottom: 10px;
+opacity: 0.5;
+}
+
+/* Toast */
+.toast {
+position: fixed;
+top: calc(80px + env(safe-area-inset-top, 0));
+left: 50%;
+transform: translateX(-50%) translateY(-20px);
+background: var(–accent);
+color: var(–bg);
+padding: 10px 18px;
+border-radius: 24px;
+font-weight: 600;
+font-size: 13px;
+z-index: 300;
+opacity: 0;
+transition: all .3s;
+pointer-events: none;
+box-shadow: 0 6px 20px rgba(255, 107, 26, 0.4);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(–red); color: white; box-shadow: 0 6px 20px rgba(255, 90, 90, 0.4); }
+
+.loading {
+text-align: center; padding: 80px 40px;
+color: var(–ink-3);
+font-family: ‘DM Mono’, monospace;
+font-size: 12px;
+text-transform: uppercase;
+letter-spacing: 0.1em;
+}
+
+/* Read-only banner */
+.readonly-banner {
+background: var(–card);
+border: 1px solid var(–line);
+border-radius: var(–radius);
+padding: 10px 14px;
+margin-bottom: 14px;
+font-size: 12px;
+color: var(–ink-2);
+display: flex; align-items: center; gap: 8px;
+}
+.readonly-banner .dot {
+width: 6px; height: 6px;
+background: var(–accent-2);
+border-radius: 50%;
+flex-shrink: 0;
+}
+
+/* Setup screen */
+.setup {
+padding: 40px 20px;
+text-align: center;
+}
+.setup h1 { margin-bottom: 16px; }
+.setup p {
+color: var(–ink-2);
+line-height: 1.5;
+margin-bottom: 20px;
+font-size: 14px;
+}
+.setup code {
+background: var(–card);
+padding: 2px 6px;
+border-radius: 4px;
+font-family: ‘DM Mono’, monospace;
+font-size: 12px;
+color: var(–accent-2);
+}
+</style>
+
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="logo">
+      <span class="logo-dot" id="connDot"></span>
+      <span>Kebab<span style="color:var(--accent)">.</span>Stocks</span>
+    </div>
+    <button class="role-chip" id="roleChip" onclick="toggleAdmin()">👁 Lecture</button>
+  </header>
+
+  <div id="loading" class="loading">Connexion…</div>
+
+  <div class="content" id="content" style="display:none;">
+    <h1>Inventaire<span class="accent">.</span></h1>
+    <div class="subtitle" id="syncStatus">Synchronisation temps réel</div>
+
+```
+<div class="summary">
+  <div class="chip alert">⚠ <span class="val" id="cntLow">0</span> en rupture</div>
+  <div class="chip warn">◐ <span class="val" id="cntWarn">0</span> bas</div>
+  <div class="chip ok">✓ <span class="val" id="cntOk">0</span> OK</div>
+  <div class="chip">Σ <span class="val" id="cntTotal">0</span> produits</div>
+</div>
+
+<div class="readonly-banner" id="readonlyBanner">
+  <span class="dot"></span>
+  <span>Mode lecture — appuie sur 👁 en haut à droite pour passer admin</span>
+</div>
+
+<div class="search-bar">
+  <span class="search-icon">⌕</span>
+  <input type="text" id="search" placeholder="Rechercher un produit…" oninput="renderInventory()">
+</div>
+
+<div class="cat-tabs" id="catTabs"></div>
+
+<div id="inventoryList"></div>
+```
+
+  </div>
+
+<button class="fab" id="fab" onclick="openAddItem()">+</button>
+
+</div>
+
+<!-- ADD/EDIT ITEM MODAL -->
+
+<div class="modal-backdrop" id="modal-item" onclick="if(event.target===this)closeModal('item')">
+  <div class="modal">
+    <div class="modal-grip"></div>
+    <h2 id="itemModalTitle">Nouveau produit</h2>
+    <div class="field">
+      <label>Nom du produit</label>
+      <input type="text" id="itemName" placeholder="ex: Viande de bœuf">
+    </div>
+    <div class="field">
+      <label>Catégorie</label>
+      <select id="itemCategory">
+        <option>Viandes</option>
+        <option>Pains</option>
+        <option>Légumes</option>
+        <option>Sauces</option>
+        <option>Boissons</option>
+        <option>Autres</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <div class="field" style="flex:1; margin:0;">
+        <label>Stock actuel</label>
+        <input type="number" id="itemQty" value="0" min="0" step="0.1">
+      </div>
+      <div class="field" style="flex:1; margin:0;">
+        <label>Unité</label>
+        <select id="itemUnit">
+          <option>kg</option>
+          <option>unités</option>
+          <option>L</option>
+          <option>bouteilles</option>
+          <option>boîtes</option>
+          <option>cartons</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Seuil d'alerte (stock minimum)</label>
+      <input type="number" id="itemThreshold" value="5" min="0" step="0.1">
+    </div>
+    <button class="btn btn-primary" onclick="saveItem()" style="margin-top: 8px;">Enregistrer</button>
+    <button class="btn btn-secondary" onclick="closeModal('item')" style="margin-top: 8px;">Annuler</button>
+    <button class="btn btn-danger" id="deleteItemBtn" onclick="deleteItem()" style="margin-top: 8px; display: none;">Supprimer ce produit</button>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+
+<div class="modal-backdrop" id="modal-admin" onclick="if(event.target===this)closeModal('admin')">
+  <div class="modal">
+    <div class="modal-grip"></div>
+    <h2 id="adminModalTitle">Mode admin</h2>
+    <p style="color: var(--ink-2); font-size: 14px; line-height: 1.5; margin: 0 0 16px;">
+      Entre ton code admin pour pouvoir modifier les produits, seuils et structure.
+    </p>
+    <div class="field">
+      <label>Code admin</label>
+      <input type="password" id="adminCode" placeholder="••••" autocomplete="off">
+    </div>
+    <button class="btn btn-primary" onclick="loginAdmin()">Activer le mode admin</button>
+    <button class="btn btn-secondary" onclick="closeModal('admin')" style="margin-top: 8px;">Annuler</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">OK</div>
+
+<!-- ============== FIREBASE CONFIG ============== -->
+
+<!-- Ce bloc sera remplacé après le setup Firebase -->
+
+<script type="module">
+  // === À REMPLIR APRÈS SETUP FIREBASE (voir guide) ===
+  const firebaseConfig = {
+    apiKey: "REMPLACER_PAR_TON_API_KEY",
+    authDomain: "REMPLACER.firebaseapp.com",
+    databaseURL: "https://REMPLACER-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "REMPLACER",
+    storageBucket: "REMPLACER.appspot.com",
+    messagingSenderId: "REMPLACER",
+    appId: "REMPLACER"
+  };
+
+  // === CODE ADMIN — CHANGE-LE ! ===
+  const ADMIN_CODE = "kebab2026";
+
+  window.__FIREBASE_CONFIG__ = firebaseConfig;
+  window.__ADMIN_CODE__ = ADMIN_CODE;
+
+  // Détecte si Firebase est configuré
+  if (firebaseConfig.apiKey.startsWith("REMPLACER")) {
+    window.__USE_LOCAL__ = true;
+    console.warn("[Kebab Stocks] Firebase non configuré — mode local activé. Voir le guide pour activer la synchro.");
+  } else {
+    try {
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+      const { getDatabase, ref, onValue, set, push, remove, update, serverTimestamp, onDisconnect } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      window.__FIREBASE__ = { db, ref, onValue, set, push, remove, update, serverTimestamp, onDisconnect };
+      window.__USE_LOCAL__ = false;
+    } catch (e) {
+      console.error("Firebase init error", e);
+      window.__USE_LOCAL__ = true;
+    }
+  }
+
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<script>
+/* ============================================================
+   KEBAB STOCKS — Multi-user, real-time, admin/read-only
+   ============================================================ */
+
+const DEFAULT_INVENTORY = [
+  { name: 'Viande de bœuf', qty: 12, unit: 'kg', threshold: 5, category: 'Viandes' },
+  { name: 'Viande de poulet', qty: 8, unit: 'kg', threshold: 5, category: 'Viandes' },
+  { name: 'Viande d\'agneau', qty: 6, unit: 'kg', threshold: 3, category: 'Viandes' },
+  { name: 'Pains kebab', qty: 80, unit: 'unités', threshold: 30, category: 'Pains' },
+  { name: 'Galettes tacos', qty: 40, unit: 'unités', threshold: 20, category: 'Pains' },
+  { name: 'Salade', qty: 4, unit: 'kg', threshold: 2, category: 'Légumes' },
+  { name: 'Tomates', qty: 5, unit: 'kg', threshold: 2, category: 'Légumes' },
+  { name: 'Oignons', qty: 6, unit: 'kg', threshold: 3, category: 'Légumes' },
+  { name: 'Cornichons', qty: 3, unit: 'kg', threshold: 1, category: 'Légumes' },
+  { name: 'Sauce blanche', qty: 6, unit: 'L', threshold: 2, category: 'Sauces' },
+  { name: 'Sauce algérienne', qty: 4, unit: 'L', threshold: 2, category: 'Sauces' },
+  { name: 'Sauce samouraï', qty: 3, unit: 'L', threshold: 1, category: 'Sauces' },
+  { name: 'Ketchup', qty: 5, unit: 'L', threshold: 2, category: 'Sauces' },
+  { name: 'Mayonnaise', qty: 4, unit: 'L', threshold: 2, category: 'Sauces' },
+  { name: 'Frites surgelées', qty: 15, unit: 'kg', threshold: 8, category: 'Autres' },
+  { name: 'Canettes soda', qty: 60, unit: 'unités', threshold: 24, category: 'Boissons' },
+  { name: 'Bouteilles d\'eau', qty: 24, unit: 'unités', threshold: 12, category: 'Boissons' },
+];
+
+let state = {
+  inventory: {},      // id -> item
+  isAdmin: false,
+  editingItemId: null,
+  currentCategory: 'Tous',
+  connected: false,
+};
+
+let fb = null;
+let useLocal = false;
+
+/* -------- Init -------- */
+window.addEventListener('firebase-ready', init);
+
+async function init() {
+  useLocal = window.__USE_LOCAL__;
+  if (!useLocal) {
+    fb = window.__FIREBASE__;
+  }
+
+  // Restore admin state
+  if (sessionStorage.getItem('kebab:admin') === 'yes') {
+    state.isAdmin = true;
+  }
+
+  if (useLocal) {
+    loadLocal();
+    setConnected(true, 'Mode local — synchro désactivée');
+    finishInit();
+  } else {
+    subscribeFirebase();
+  }
+}
+
+function finishInit() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+  updateRoleUI();
+  renderCategoryTabs();
+  renderInventory();
+}
+
+/* -------- Local storage fallback -------- */
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem('kebab:stocks');
+    if (raw) {
+      state.inventory = JSON.parse(raw);
+    } else {
+      // Seed defaults
+      DEFAULT_INVENTORY.forEach(item => {
+        const id = 'i' + Date.now() + Math.random().toString(36).slice(2, 8);
+        state.inventory[id] = { ...item };
+      });
+      saveLocal();
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+function saveLocal() {
+  localStorage.setItem('kebab:stocks', JSON.stringify(state.inventory));
+}
+
+/* -------- Firebase real-time -------- */
+function subscribeFirebase() {
+  const inventoryRef = fb.ref(fb.db, 'inventory');
+  fb.onValue(inventoryRef, snapshot => {
+    const data = snapshot.val();
+    if (data === null) {
+      // First time — seed defaults if admin
+      if (state.isAdmin) seedDefaults();
+      state.inventory = {};
+    } else {
+      state.inventory = data;
+    }
+    setConnected(true);
+    if (document.getElementById('loading').style.display !== 'none') {
+      finishInit();
+    } else {
+      renderCategoryTabs();
+      renderInventory();
+    }
+  }, err => {
+    console.error('Firebase error', err);
+    setConnected(false, 'Erreur de connexion');
+    toast('Connexion impossible', true);
+  });
+
+  // Detect online/offline
+  const connRef = fb.ref(fb.db, '.info/connected');
+  fb.onValue(connRef, snap => {
+    setConnected(snap.val() === true);
+  });
+}
+
+function seedDefaults() {
+  DEFAULT_INVENTORY.forEach(item => {
+    const newRef = fb.push(fb.ref(fb.db, 'inventory'));
+    fb.set(newRef, { ...item, updated: fb.serverTimestamp() });
+  });
+}
+
+function setConnected(yes, msg) {
+  state.connected = yes;
+  const dot = document.getElementById('connDot');
+  const status = document.getElementById('syncStatus');
+  if (yes) {
+    dot.classList.remove('offline');
+    status.textContent = msg || (useLocal ? 'Mode local — Firebase non configuré' : 'Synchronisation temps réel · Connecté');
+  } else {
+    dot.classList.add('offline');
+    status.textContent = msg || 'Hors ligne — reconnexion…';
+  }
+}
+
+/* -------- Data ops (admin only for writes) -------- */
+async function writeItem(id, data) {
+  if (!state.isAdmin) { toast('Mode admin requis', true); return; }
+  if (useLocal) {
+    state.inventory[id] = { ...state.inventory[id], ...data };
+    saveLocal();
+    renderInventory();
+  } else {
+    await fb.update(fb.ref(fb.db, 'inventory/' + id), { ...data, updated: fb.serverTimestamp() });
+  }
+}
+
+async function createItem(data) {
+  if (!state.isAdmin) { toast('Mode admin requis', true); return; }
+  if (useLocal) {
+    const id = 'i' + Date.now() + Math.random().toString(36).slice(2, 8);
+    state.inventory[id] = data;
+    saveLocal();
+    renderInventory();
+  } else {
+    const newRef = fb.push(fb.ref(fb.db, 'inventory'));
+    await fb.set(newRef, { ...data, updated: fb.serverTimestamp() });
+  }
+}
+
+async function removeItem(id) {
+  if (!state.isAdmin) { toast('Mode admin requis', true); return; }
+  if (useLocal) {
+    delete state.inventory[id];
+    saveLocal();
+    renderInventory();
+  } else {
+    await fb.remove(fb.ref(fb.db, 'inventory/' + id));
+  }
+}
+
+/* -------- Quantity adjustment — ADMIN ONLY -------- */
+async function adjustQty(id, delta) {
+  if (!state.isAdmin) { toast('Seul l\'admin peut modifier', true); return; }
+  const item = state.inventory[id];
+  if (!item) return;
+  const newQty = Math.max(0, Math.round((item.qty + delta) * 10) / 10);
+  await writeItem(id, { qty: newQty });
+  if (newQty <= item.threshold && delta < 0) toast('⚠ Stock bas: ' + item.name);
+}
+
+/* -------- Admin login -------- */
+function toggleAdmin() {
+  if (state.isAdmin) {
+    // Logout
+    state.isAdmin = false;
+    sessionStorage.removeItem('kebab:admin');
+    updateRoleUI();
+    renderInventory();
+    toast('Mode lecture');
+  } else {
+    document.getElementById('adminCode').value = '';
+    document.getElementById('modal-admin').classList.add('show');
+    setTimeout(() => document.getElementById('adminCode').focus(), 300);
+  }
+}
+
+function loginAdmin() {
+  const code = document.getElementById('adminCode').value;
+  if (code === window.__ADMIN_CODE__) {
+    state.isAdmin = true;
+    sessionStorage.setItem('kebab:admin', 'yes');
+    closeModal('admin');
+    updateRoleUI();
+    renderInventory();
+    toast('✓ Mode admin activé');
+    // If Firebase is configured and inventory is empty, seed
+    if (!useLocal && Object.keys(state.inventory).length === 0) {
+      seedDefaults();
+    }
+  } else {
+    toast('Code incorrect', true);
+  }
+}
+
+function updateRoleUI() {
+  const chip = document.getElementById('roleChip');
+  const fab = document.getElementById('fab');
+  const banner = document.getElementById('readonlyBanner');
+  if (state.isAdmin) {
+    chip.textContent = '✓ Admin';
+    chip.classList.add('admin');
+    fab.style.display = 'flex';
+    banner.style.display = 'none';
+  } else {
+    chip.textContent = '👁 Lecture';
+    chip.classList.remove('admin');
+    fab.style.display = 'none';
+    banner.style.display = 'flex';
+  }
+}
+
+/* -------- Render -------- */
+function renderCategoryTabs() {
+  const cats = ['Tous', ...new Set(Object.values(state.inventory).map(i => i.category || 'Autres'))];
+  const tabs = document.getElementById('catTabs');
+  tabs.innerHTML = '';
+  cats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-tab' + (cat === state.currentCategory ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = () => { state.currentCategory = cat; renderCategoryTabs(); renderInventory(); };
+    tabs.appendChild(btn);
+  });
+}
+
+function renderInventory() {
+  const list = document.getElementById('inventoryList');
+  list.innerHTML = '';
+
+  const search = (document.getElementById('search')?.value || '').toLowerCase().trim();
+  const items = Object.entries(state.inventory)
+    .map(([id, item]) => ({ id, ...item }))
+    .filter(item => state.currentCategory === 'Tous' || item.category === state.currentCategory)
+    .filter(item => !search || item.name.toLowerCase().includes(search))
+    .sort((a, b) => {
+      const aLow = a.qty <= a.threshold ? 0 : (a.qty <= a.threshold * 1.5 ? 1 : 2);
+      const bLow = b.qty <= b.threshold ? 0 : (b.qty <= b.threshold * 1.5 ? 1 : 2);
+      if (aLow !== bLow) return aLow - bLow;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
+  // Update summary
+  const all = Object.values(state.inventory);
+  const low = all.filter(i => i.qty <= i.threshold).length;
+  const warn = all.filter(i => i.qty > i.threshold && i.qty <= i.threshold * 1.5).length;
+  const ok = all.filter(i => i.qty > i.threshold * 1.5).length;
+  document.getElementById('cntLow').textContent = low;
+  document.getElementById('cntWarn').textContent = warn;
+  document.getElementById('cntOk').textContent = ok;
+  document.getElementById('cntTotal').textContent = all.length;
+
+  if (!items.length) {
+    list.innerHTML = '<div class="empty"><div class="icon">▦</div>' + (search ? 'Aucun résultat' : 'Aucun produit') + '</div>';
+    return;
+  }
+
+  items.forEach(item => {
+    const isLow = item.qty <= item.threshold;
+    const isWarn = !isLow && item.qty <= item.threshold * 1.5;
+    const cls = isLow ? 'low' : (isWarn ? 'warn' : '');
+    const qtyCls = isLow ? 'alert' : (isWarn ? 'warn' : '');
+    const div = document.createElement('div');
+    div.className = 'inv-item ' + cls;
+    const adminBtn = state.isAdmin ? `<button class="item-admin" onclick="editItem('${item.id}')">⚙</button>` : '';
+    const disabled = state.isAdmin ? '' : 'disabled';
+    div.innerHTML = `
+      ${adminBtn}
+      <div class="inv-info">
+        <div class="inv-name">${escapeHtml(item.name)}</div>
+        <div class="inv-meta">${escapeHtml(item.category || 'Autres')} · Seuil ${item.threshold} ${escapeHtml(item.unit)}</div>
+      </div>
+      <div class="inv-controls">
+        <button class="qty-btn" onclick="adjustQty('${item.id}', -1)" ${disabled}>−</button>
+        <div class="qty-value ${qtyCls}">${item.qty}<span class="u">${escapeHtml(item.unit)}</span></div>
+        <button class="qty-btn" onclick="adjustQty('${item.id}', 1)" ${disabled}>+</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+/* -------- Item modal -------- */
+function openAddItem() {
+  if (!state.isAdmin) { toast('Mode admin requis', true); return; }
+  state.editingItemId = null;
+  document.getElementById('itemModalTitle').textContent = 'Nouveau produit';
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemCategory').value = 'Viandes';
+  document.getElementById('itemQty').value = 0;
+  document.getElementById('itemUnit').value = 'kg';
+  document.getElementById('itemThreshold').value = 5;
+  document.getElementById('deleteItemBtn').style.display = 'none';
+  document.getElementById('modal-item').classList.add('show');
+}
+
+function editItem(id) {
+  if (!state.isAdmin) return;
+  const item = state.inventory[id];
+  if (!item) return;
+  state.editingItemId = id;
+  document.getElementById('itemModalTitle').textContent = 'Modifier le produit';
+  document.getElementById('itemName').value = item.name || '';
+  document.getElementById('itemCategory').value = item.category || 'Autres';
+  document.getElementById('itemQty').value = item.qty;
+  document.getElementById('itemUnit').value = item.unit;
+  document.getElementById('itemThreshold').value = item.threshold;
+  document.getElementById('deleteItemBtn').style.display = 'flex';
+  document.getElementById('modal-item').classList.add('show');
+}
+
+async function saveItem() {
+  if (!state.isAdmin) return;
+  const name = document.getElementById('itemName').value.trim();
+  if (!name) { toast('Nom requis', true); return; }
+  const data = {
+    name,
+    category: document.getElementById('itemCategory').value,
+    qty: parseFloat(document.getElementById('itemQty').value) || 0,
+    unit: document.getElementById('itemUnit').value,
+    threshold: parseFloat(document.getElementById('itemThreshold').value) || 0,
+  };
+  if (state.editingItemId) {
+    await writeItem(state.editingItemId, data);
+    toast('Produit modifié');
+  } else {
+    await createItem(data);
+    toast('Produit ajouté');
+  }
+  closeModal('item');
+  state.editingItemId = null;
+}
+
+async function deleteItem() {
+  if (!state.isAdmin || !state.editingItemId) return;
+  if (!confirm('Supprimer ce produit définitivement ?')) return;
+  await removeItem(state.editingItemId);
+  closeModal('item');
+  toast('Produit supprimé');
+  state.editingItemId = null;
+}
+
+function closeModal(id) {
+  document.getElementById('modal-' + id).classList.remove('show');
+  if (id === 'item') state.editingItemId = null;
+}
+
+/* -------- Toast -------- */
+function toast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', isError);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* -------- Utils -------- */
+function escapeHtml(s) {
+  if (typeof s !== 'string') return s;
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Expose functions globally for inline handlers
+window.toggleAdmin = toggleAdmin;
+window.loginAdmin = loginAdmin;
+window.adjustQty = adjustQty;
+window.openAddItem = openAddItem;
+window.editItem = editItem;
+window.saveItem = saveItem;
+window.deleteItem = deleteItem;
+window.closeModal = closeModal;
+</script>
+
+</body>
+</html>
